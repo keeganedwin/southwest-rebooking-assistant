@@ -36,9 +36,10 @@ Only when no flight has room for everyone:
 
 ## 5. Deliverables
 
-- `REBOOKING_SPEC.md` at the repository root, about two printed pages, written so a new employee can follow it without help. It covers suggestions, agent confirmation, split parties, fare rules, and both date ranges.
-- This file, `PROMPT_NOTES.md`.
-- Both live at the root of a new **public** GitHub repository named `southwest-rebooking-assistant`.
+- `REBOOKING_SPEC.md` at the repository root, about two printed pages, written so a new employee can follow it without help. It covers suggestions (with an example), agent confirmation, split parties, fare rules, both date ranges, and a short glossary.
+- This file, `PROMPT_NOTES.md`, and `ORIGINAL_PROMPT_NOTES.md`, which holds the original notes word for word.
+- `README.md`, which shows the full spec on the repository's front page.
+- All of them live at the root of a new **public** GitHub repository named `southwest-rebooking-assistant`.
 
 ## 6. Decisions made
 

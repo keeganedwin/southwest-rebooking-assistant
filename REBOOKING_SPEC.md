@@ -1,10 +1,10 @@
 # Storm Rebooking Assistant: Specification
 
-**Version 0.2 (draft)** · Rules source: *Storm Travel Waiver Fare Rules Bulletin (Denver, November 2026)*, issued 15 Nov 2026 · Evidence: 60 logged storm calls and one senior-agent interview
+**Version 0.3 (draft)** · Rules source: *Storm Travel Waiver Fare Rules Bulletin (Denver, November 2026)*, issued 15 Nov 2026
 
 ## 1. Purpose and five golden rules
 
-The assistant helps contact-center agents rebook customers whose flights were cancelled by the Denver snowstorm. It **suggests**. The agent decides, and the customer says yes. If you are new, read this section and Section 7, then use the rest as a reference.
+The assistant helps contact-center agents rebook customers whose flights were cancelled by the Denver snowstorm. It **suggests**. The agent decides, and the customer says yes. If you are new, read Sections 1, 2 and 7 first.
 
 1. The assistant never books, charges or contacts a customer. Only the agent does.
 2. It **always looks first for a flight with room for everyone**.
@@ -12,10 +12,14 @@ The assistant helps contact-center agents rebook customers whose flights were ca
 4. Anything out of scope is **flagged**, not worked around.
 5. If data is missing or unclear, it says so. It never guesses.
 
-## 2. What the assistant needs to know
+## 2. Key terms and data
 
-- **Booking:** `waiver_eligible`, `fare_class`, `fare_paid_usd`, `earliest_acceptable_departure`, origin, destination, onward connection, and each traveller's **age**, so it can tell minors (under 18) from adults (18 and over). If an age is missing, ask the agent. Do not assume.
-- **Flights:** `flight_status`, `departure_datetime`, `fare_class_open`, open seats, and whether the open seats are together, if that data is available (see Section 9).
+- **Party:** everyone on one booking. **Minor:** under 18. **Adult:** 18 or over.
+- **Waiver eligible:** a yes/no flag on the booking (`waiver_eligible`). It decides whether a fare difference can apply. Nobody re-checks it (clause 1.4).
+- **Split:** rebooking one party onto more than one flight because no single flight has room for everyone.
+- **Out of scope:** a request the bulletin does not let agents process. It goes to **Revenue Management**, the pricing team, for manual review.
+- **Booking data:** `waiver_eligible`, `fare_class`, `fare_paid_usd`, `earliest_acceptable_departure`, origin, destination, onward connection, and each traveller's age. If an age is missing, ask the agent. Do not assume.
+- **Flight data:** `flight_status`, `departure_datetime`, `fare_class_open`, open seats, and whether the seats are together, if known (Section 8).
 
 ## 3. Dates and scope checks
 
@@ -28,25 +32,37 @@ The assistant helps contact-center agents rebook customers whose flights were ca
 
 The waiver stays in force **through 23 Nov 2026** (1.5). Requests made after that date are not processed by agents (2.5). The 18 to 23 window applies only to the new flight, and this spec applies it to every rebooking, waiver or not.
 
-Every suggested flight must pass all of these:
-
-| # | Check | Clause | If it fails |
+| # | Every suggested flight must pass | Clause | If it fails |
 |---|---|---|---|
 | 1 | Original flight cancelled 15 to 18 Nov at an affected station (DEN, MDW, LAS, PHX, BWI, HOU, DAL, LAX, OAK, SAN, STL, MCO, BNA, SMF) | 1.1, 1.2 | Flag |
-| 2 | New flight departs **18 to 23 Nov 2026 inclusive** | 2.1 | Flag |
+| 2 | New flight departs 18 to 23 Nov 2026 inclusive | 2.1 | Flag |
 | 3 | Same origin and destination airports | 2.2 | Flag |
 | 4 | `flight_status` is not cancelled (scheduled and delayed are fine) | 2.3 | Do not suggest |
 | 5 | Departs at or after `earliest_acceptable_departure` | 2.4 | Do not suggest |
 | 6 | Request made on or before 23 Nov 2026 | 1.5, 2.5 | Flag |
 | 7 | Arrives in time for any onward connection | agent interview | Do not suggest |
 
-**Out-of-scope flag.** For checks 1, 2, 3 and 6 the assistant shows **OUT OF SCOPE: send to Revenue Management for manual review**, names the failed clause, and offers no flights. The agent tells the customer it is under review. Alternate-airport requests and travel outside 18 to 23 Nov are always flagged.
-
-## 4. Finding a flight
+## 4. Finding a flight and what a suggestion looks like
 
 1. Search every flight that passes Section 3, so the agent only ever sees available flights.
 2. **First look for one flight with room for the whole party.** Rank: (a) everyone on one flight, seated together; (b) everyone on one flight, not all seated together (show who is apart); (c) only if no flight has room for everyone, a split (Section 5). If seat adjacency is unknown, skip the (a) and (b) distinction and ask the agent to check seats together.
-3. Show at most three options, earliest departure first within a rank. Each shows flight, times, seats, fare treatment and why it ranks there.
+3. Show at most three options, earliest departure first within a rank. All flight details below are invented for illustration.
+
+```
+BOOKING: 2 adults, DEN to PHX, waiver_eligible = true
+OPTION 1 (rank a: everyone together)
+  Flight 1234, 19 Nov, 09:15, 2 seats open
+  Fare: $0 difference (clause 3.1). Note to record: STORM WAIVER DEN NOV26 + original confirmation no.
+  Checks passed: dates, airports, status, earliest time, connection
+AGENT: Accept / Edit / Reject (give a reason)
+```
+
+```
+OUT OF SCOPE: send to Revenue Management for manual review
+Reason: requested departure 24 Nov 2026 is outside 18 to 23 Nov (clause 2.1). No options offered.
+```
+
+**Out-of-scope flag.** For checks 1, 2, 3 and 6 the assistant shows the flag above, names the failed clause and offers no flights. The agent tells the customer it is under review.
 
 ## 5. Splitting a party (families especially)
 
@@ -69,12 +85,11 @@ Every suggested flight must pass all of these:
 |---|---|---|
 | Fare difference | **None, in either direction** (3.1) | Collected **only if the new open fare is higher** (4.1) |
 | Fare paid | Carries over unchanged (3.2) | Original fare class rules apply |
-| Fare class of new flight | May differ; customer keeps original benefits (3.3) | Fare class decides (below) |
+| Fare class of new flight | May differ; customer keeps original benefits (3.3) | Fare class decides |
 | Change fees | None (3.4) | Per original fare class |
 | Split party | No penalty to anyone (3.5) | Same rules for each member |
 | Documentation | `STORM WAIVER DEN NOV26` + original confirmation number, on every rebooked flight (3.6) | Not recorded (4.4) |
 
-- The flag decides eligibility. **Agents and the assistant do not re-assess it** (1.4).
 - All four fare classes (Wanna Get Away, Wanna Get Away Plus, Anytime, Business Select) can change. Anytime and Business Select are refundable per standard rules. Loyalty tier changes nothing (4.2).
 - For non-eligible bookings the assistant shows any fare difference as an **estimate** and leaves the decision to the agent. It never auto-rebooks at a charge.
 - **If the new fare is lower**, the bulletin is silent. The assistant **never promises a refund**. It tells the agent so, and the agent decides under standard fare rules.
@@ -93,12 +108,6 @@ Every suggested flight must pass all of these:
 | Seat moves, exceptions | Floor lead |
 | Fare dispute, refund request, split refused | Supervisor |
 
-## 8. Worked checks
+## 8. Open question
 
-- **Eligible couple, new flight 19 Nov, same airports:** two seats found, $0 difference, waiver line recorded.
-- **Not eligible, solo:** the new fare is $40 higher, so show an estimated $40 for the agent to confirm. Do not rebook automatically.
-- **Request for a 24 Nov departure:** flagged out of scope, sent to Revenue Management, no options offered.
-
-## 9. Open question
-
-**Seat data.** No seat availability file (`flight_seat_availability`) has been provided yet. Until it is, the assistant treats seat adjacency as unknown and the agent confirms seats together on the seat screen. Revisit when the data arrives, including how fresh it is, since seat screens refreshed mid-search in several logged calls.
+**Seat data.** No seat availability file (`flight_seat_availability`) has been provided yet. Until it is, the assistant treats seat adjacency as unknown and the agent confirms seats together on the seat screen.
