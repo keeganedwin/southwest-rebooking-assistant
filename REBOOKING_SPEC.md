@@ -1,6 +1,6 @@
 # Storm Rebooking Assistant: Specification
 
-**Version 0.3 (draft)** · Rules source: *Storm Travel Waiver Fare Rules Bulletin (Denver, November 2026)*, issued 15 Nov 2026
+Rules source: *Storm Travel Waiver Fare Rules Bulletin (Denver, November 2026)*, issued 15 Nov 2026
 
 ## 1. Purpose and five golden rules
 
