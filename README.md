@@ -19,14 +19,6 @@ Rebooking during a storm is slow, manual work. Agents lose time in three places:
 | Families | Anyone under 18 travels with an adult from their party. One adult with minors is never split. |
 | Fares | Waiver-eligible bookings pay no fare difference. Others pay only if the new fare is higher. No refund is ever promised. |
 
-## Documentation
-
-| File | Contents |
-|---|---|
-| [REBOOKING_SPEC.md](REBOOKING_SPEC.md) | **Start here.** The full specification. |
-| [PROMPT_NOTES.md](PROMPT_NOTES.md) | Requirements, decisions made and the prompt. |
-| [ORIGINAL_PROMPT_NOTES.md](ORIGINAL_PROMPT_NOTES.md) | The original notes, word for word. |
-
 ## Open item
 
 Seat availability data has not been provided yet, so the specification treats seat adjacency as unknown and has the agent confirm it.
